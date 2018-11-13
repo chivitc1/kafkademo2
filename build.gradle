@@ -3,14 +3,12 @@ apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 
 jar {
-    baseName = 'record-export-scheduler'
+    baseName = 'kafka-auth-demo'
     version = '0.0.1-SNAPSHOT'
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-
-//        springBootVersion = '1.5.12.RELEASE'
 buildscript {
     ext {
 		  springBootVersion = '1.5.9.RELEASE'
