@@ -65,7 +65,7 @@ spring.cloud.stream.kafka.binder.configuration.security.protocol=SASL_PLAINTEXT
 
 spring.cloud.stream.kafka.binder.configuration.sasl.mechanism = PLAIN
 
-### Setup for Kafka producer/consumer console
+#### Setup for Kafka producer/consumer console
 
 producer.properties / consumer.properties:
 
@@ -73,7 +73,7 @@ security.protocol=SASL_PLAINTEXT
 
 sasl.mechanism=PLAIN
 
-### Set JVM $JAVA_OPTS for jar run
+#### Set JVM $JAVA_OPTS for jar run
 
 java -Djava.security.auth.login.config=/etc/kafka-client-jaas.conf -jar /app.jar
 
@@ -107,3 +107,20 @@ $ bin/kafka-server-start.sh config/server1.properties
 $ export KAFKA_OPTS=-Djava.security.auth.login.config=config/producer_jaas.conf
 $ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning --consumer.config config/consumer.properties
 
+## Spring boot Spring Cloud Stream Kafka authen using JAAS
+
+spring.cloud.stream.kafka.binder.brokers=localhost:9092,localhost:9093,localhost:9094
+spring.cloud.stream.kafka.binder.zkNodes=localhost:2181
+
+spring.cloud.stream.bindings.output.destination=test2
+spring.cloud.stream.bindings.output.content-type=application/json
+
+spring.cloud.stream.bindings.input.destination=test2
+
+spring.cloud.stream.kafka.binder.jaas.loginModule=org.apache.kafka.common.security.plain.PlainLoginModule
+spring.cloud.stream.kafka.binder.jaas.options.username=kafka
+spring.cloud.stream.kafka.binder.jaas.options.password=kafka-secret
+spring.cloud.stream.kafka.binder.configuration.security.protocol=SASL_PLAINTEXT
+spring.cloud.stream.kafka.binder.configuration.sasl.mechanism = PLAIN
+
+(No need JAAS config file)
