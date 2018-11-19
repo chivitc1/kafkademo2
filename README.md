@@ -4,6 +4,20 @@
 
 ## Setup
 
+### Requirement for kafka authen
+Kafka server version 0.10.2.2+
+
+Kafka client lib version 0.9+
+
+### Connection to zookeeper
+
+It is optional to config JAAS for Zookeeper
+
+
+### Gradle dependency for Kafka client 0.9+ config
+
+compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-stream-kafka', version: '1.3.3.RELEASE'
+
 ### Setup for Kafka Broker
 
 #### Authen config file for server
