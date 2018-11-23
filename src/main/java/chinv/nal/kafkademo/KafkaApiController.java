@@ -35,13 +35,13 @@ public class KafkaApiController
 		return new ResponseEntity<>("I got your requet", HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/kafka/{target}", method = POST, consumes = "*/*")
+	@RequestMapping(path = "/kafka", method = POST, consumes = "*/*")
 	@ResponseStatus(HttpStatus.ACCEPTED)
-	public void handleRequest(@RequestBody String body, @PathVariable("target") String target,
+	public void handleRequest(@RequestBody MessageForm _messageForm,
 							  @RequestHeader(HttpHeaders.CONTENT_TYPE) Object contentType) {
-		log.info("Request in");
-		sendMessage(body, target, contentType);
-		log.info("Request out");
+		log.info("Request in: ");
+		sendMessage(_messageForm.getContent(), _messageForm.getTopicName(), contentType);
+		log.info("Request out.");
 	}
 
 	private void sendMessage(String body, String target, Object contentType) {
