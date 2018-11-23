@@ -7,4 +7,5 @@ ADD ./build/libs/kafka-auth-demo-0.0.1-SNAPSHOT.jar app.jar
 #COPY ./files/etc/kafka-client-jaas.conf /etc/
 RUN sh -c 'touch /app.jar'
 ENV JAVA_OPTS=""
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar /app.jar" ]
+ENV KAFKA_USER_NAME_TEST="chinv"
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Dkafka.user.name=${KAFKA_USER_NAME_TEST} -jar /app.jar" ]
