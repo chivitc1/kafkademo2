@@ -11,12 +11,10 @@ import org.springframework.cloud.stream.messaging.Sink;
 @EnableBinding(Sink.class)
 public class MyKafkaListener
 {
-	@StreamListener(Sink.INPUT) // destination name 'input.myGroup'
+	@StreamListener(Sink.INPUT)
 	public void handle(String _msg) {
+		log.info("Receive kafka message:");
 		log.info(_msg);
 	}
 
-//	public void handle(AccountModel _accountModel) {
-//		log.info(_accountModel.getAccountId());
-//	}
 }
