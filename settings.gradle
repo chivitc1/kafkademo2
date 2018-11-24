@@ -1,3 +1,3 @@
 rootProject.name = 'demo-kafka'
-include 'kafkakafka-client-tool', 'kafka-scs-tool'
+include 'kafka-client-tool', 'kafka-scs-tool'
 
