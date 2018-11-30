@@ -20,7 +20,7 @@ public class MainApp implements CommandLineRunner
 	@Override
 	public void run(String... args) throws Exception
 	{
-		String str = System.getProperty("kafka.user.name");
-		log.info("JVM user name: " + str);
+//		String str = System.getProperty("kafka.user.name");
+//		log.info("JVM user name: " + str);
 	}
 }

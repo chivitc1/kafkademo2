@@ -20,7 +20,6 @@ public class MainApp implements CommandLineRunner
 	@Override
 	public void run(String... args) throws Exception
 	{
-		String str = System.getProperty("sasl.jaas.config");
-		log.info("TEST sasl.jaas.config: " + str);
+		log.info("RUNNER");
 	}
 }
