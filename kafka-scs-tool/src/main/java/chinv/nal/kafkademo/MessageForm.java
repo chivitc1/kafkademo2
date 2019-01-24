@@ -10,6 +10,5 @@ import java.util.Map;
 @Setter
 public class MessageForm implements Serializable
 {
-	private String topicName;
 	private Map<String, String> content;
 }

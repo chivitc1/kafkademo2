@@ -2,35 +2,41 @@ version: '3.2'
 
 services:
   zookeeper:
-      image: zookeeper:3.4
+      image: zookeeper:3.4.9
       ports:
           - 2181:2181
-      environment:
-        - ALLOW_ANONYMOUS_LOGIN=yes
+      healthcheck:
+          test: ["CMD-SHELL", "./bin/zkCli.sh ls /"]
+          interval: 10s
+          timeout: 10s
+          retries: 3
+#      extra_hosts:
+#          - "kafka:172.18.0.6"
+#          - "zookeeper:172.18.0.3"
   kafka:
-      image: wurstmeister/kafka
+      build:
+          context: ../kafka
+      ports:
+          - 9092:9092
+      environment:
+          KAFKA_BROKER_ID: 1
+          KAFKA_LISTENERS: SASL_PLAINTEXT://:9092
+          KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://:9092
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_INTER_BROKER_USER: admin
+          KAFKA_INTER_BROKER_PASSWORD: admin-secret
+          KAFKA_BROKER_USER: kafka
+          KAFKA_BROKER_PASSWORD: kafka-secret
+          KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+          KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+          KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
+          KAFKA_DELETE_TOPIC_ENABLE: "true"
+          KAFKA_OPTS: "-Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf"
       depends_on:
           - zookeeper
-      ports:
-        - '9092:9092'
-      environment:
-        KAFKA_ADVERTISED_PORT: 9092
-        KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://:9092
-        KAFKA_LISTENERS: SASL_PLAINTEXT://:9092
-        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-        KAFKA_DELETE_TOPIC_ENBALE: "true"
-        KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-        KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-        KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
-        KAFKA_INTER_BROKER_USER: admin
-        KAFKA_INTER_BROKER_PASSWORD: kafka-secret
-        KAFKA_BROKER_USER: kafka
-        KAFKA_BROKER_PASSWORD: kafka-secret
-        KAFKA_OPTS: -Djava.security.auth.login.config=/opt/kafka/config/server-jaas.conf
-        KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      volumes:
-            - ./files/etc/kafka/server-jaas.conf:/opt/kafka/config/server-jaas.conf
-
+#      extra_hosts:
+#          - "kafka:172.18.0.6"
+#          - "zookeeper:172.18.0.3"
   demo-kafka-auth:
       image: kafka-scs-tool
       build:
@@ -38,9 +44,12 @@ services:
       environment:
           SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: kafka:9092
           SPRING_CLOUD_STREAM_KAFKA_BINDER_ZKNODES: zookeeper:2181
-          TOPIC_NAME: test3
+          TOPIC_NAME: test
           KAFKA_USERNAME: kafka
           KAFKA_PASSWORD: kafka-secret
+#      extra_hosts:
+#          - "kafka:172.18.0.6"
+#          - "zookeeper:172.18.0.3"
 
       depends_on:
           - zookeeper

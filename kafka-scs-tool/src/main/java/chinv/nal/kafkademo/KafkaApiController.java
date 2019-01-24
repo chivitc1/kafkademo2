@@ -38,22 +38,43 @@ public class KafkaApiController
 		return new ResponseEntity<>("I got your requet", HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/kafka", method = POST, consumes = "*/*")
+	@RequestMapping(path = "/kafka/{topicName}", method = POST, consumes = "*/*")
 	@ResponseStatus(HttpStatus.ACCEPTED)
-	public void handleRequest(@RequestBody MessageForm _messageForm,
-							  @RequestHeader(HttpHeaders.CONTENT_TYPE) Object contentType) throws JsonProcessingException
+	public void handleRequest(@RequestBody Map<String, String> content,
+							  @RequestHeader(HttpHeaders.CONTENT_TYPE) Object contentType,
+							  @PathVariable String topicName) throws JsonProcessingException
 	{
 		log.info("Request in: ");
-		sendMessage(_messageForm.getContent(), _messageForm.getTopicName(), contentType);
+		sendMessage(content, topicName, contentType);
 		log.info("Request out.");
 	}
 
 	private void sendMessage(Map<String, String> body, String target, Object contentType) throws JsonProcessingException
 	{
-		ObjectMapper mapper = new ObjectMapper();
-		String jsonResult = mapper.writerWithDefaultPrettyPrinter()
-				.writeValueAsString(body);
+		String jsonResult = createJsonMsg(body);
 		resolver.resolveDestination(target).send(MessageBuilder.createMessage(jsonResult,
 				new MessageHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, contentType))));
+	}
+
+	public static String createJsonMsg(Map<String, String> _map) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		int count = 0;
+		int limit = _map.size();
+		for (String k : _map.keySet()) {
+			sb.append("\"");
+			sb.append(k);
+			sb.append("\"");
+			sb.append(":");
+			sb.append("\"");
+			sb.append(_map.get(k));
+			sb.append("\"");
+			if (count < limit-1) {
+				sb.append(",");
+			}
+			count++;
+		}
+		sb.append("}");
+		return sb.toString();
 	}
 }

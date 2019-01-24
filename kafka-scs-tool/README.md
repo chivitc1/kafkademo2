@@ -21,6 +21,9 @@ compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-stream-k
 ### Setup for Kafka Broker
 
 #### Authen config file for server
+
+- server.jaas.conf
+
 KafkaServer {
     org.apache.kafka.common.security.plain.PlainLoginModule required
     username="admin"
@@ -28,13 +31,10 @@ KafkaServer {
     user_admin="kafka-secret"
     user_kafka="kafka-secret";
 };
-KafkaClient {
-    org.apache.kafka.common.security.plain.PlainLoginModule required
-    username="kafka"
-    password="kafka-secret";
-};
 
 #### Authen config file for server
+- client.jaas.conf
+
 KafkaClient {
     org.apache.kafka.common.security.plain.PlainLoginModule required
     username="kafka"
@@ -53,15 +53,20 @@ listeners=SASL_PLAINTEXT://localhost:9092
 
 #### For Kafka running in docker-compose
 
-        environment:
-            KAFKA_LISTENERS: "SASL_PLAINTEXT://:9092"
-            KAFKA_ADVERTISED_LISTENERS: "SASL_PLAINTEXT://${HOST_IP}:9092"
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "SASL_PLAINTEXT:SASL_PLAINTEXT"
-            KAFKA_INTER_BROKER_LISTENER_NAME: "SASL_PLAINTEXT"
-            KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: "PLAIN"
-            KAFKA_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-            KAFKA_SASL_ENABLED_MECHANISMS: "PLAIN"
-            KAFKA_OPTS: "-Djava.security.auth.login.config=/opt/kafka/config/kafka-server-jaas.conf"
+      environment:
+          KAFKA_BROKER_ID: 1
+          KAFKA_LISTENERS: SASL_PLAINTEXT://:9092
+          KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://:9092
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_INTER_BROKER_USER: admin
+          KAFKA_INTER_BROKER_PASSWORD: admin-secret
+          KAFKA_BROKER_USER: kafka
+          KAFKA_BROKER_PASSWORD: kafka-secret
+          KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+          KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+          KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
+          KAFKA_DELETE_TOPIC_ENABLE: "true"
+          KAFKA_OPTS: "-Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf"
 
 ### Setup for Kafka client
 
@@ -121,20 +126,56 @@ $ bin/kafka-server-start.sh config/server1.properties
 $ export KAFKA_OPTS=-Djava.security.auth.login.config=config/producer_jaas.conf
 $ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning --consumer.config config/consumer.properties
 
+## Run console tool without export KAFKA_OPTS
+
+- Modify kafka tool for authen
+
+cd $KAFKA_HOME
+
+sed -i '$d' bin/kafka-server-start.sh
+
+echo 'exec $(dirname $0)/kafka-run-class.sh -Djava.security.auth.login.config=$(dirname $0)/../config/server.jaas.conf kafka.Kafka "$@"' >> bin/kafka-server-start.sh
+
+sed -i '$d' bin/kafka-console-consumer.sh
+
+echo 'exec $(dirname $0)/kafka-run-class.sh -Djava.security.auth.login.config=$(dirname $0)/../config/client.jaas.conf kafka.tools.ConsoleConsumer "$@"' >> bin/kafka-console-consumer.sh
+
+sed -i '$d' bin/kafka-console-producer.sh
+
+echo 'exec $(dirname $0)/kafka-run-class.sh -Djava.security.auth.login.config=$(dirname $0)/../config/client.jaas.conf kafka.tools.ConsoleProducer "$@"' >> bin/kafka-console-producer.sh
+
+echo security.protocol=SASL_PLAINTEXT >> config/producer.properties
+
+echo sasl.mechanism=PLAIN >> config/producer.properties
+
+echo security.protocol=SASL_PLAINTEXT >> config/consumer.properties
+
+echo sasl.mechanism=PLAIN >> config/consumer.properties
+
 ## Spring boot Spring Cloud Stream Kafka authen using JAAS
 
 spring.cloud.stream.kafka.binder.brokers=localhost:9092,localhost:9093,localhost:9094
+
 spring.cloud.stream.kafka.binder.zkNodes=localhost:2181
 
 spring.cloud.stream.bindings.output.destination=test2
+
 spring.cloud.stream.bindings.output.content-type=application/json
 
 spring.cloud.stream.bindings.input.destination=test2
 
 spring.cloud.stream.kafka.binder.jaas.loginModule=org.apache.kafka.common.security.plain.PlainLoginModule
+
 spring.cloud.stream.kafka.binder.jaas.options.username=kafka
+
 spring.cloud.stream.kafka.binder.jaas.options.password=kafka-secret
+
 spring.cloud.stream.kafka.binder.configuration.security.protocol=SASL_PLAINTEXT
+
 spring.cloud.stream.kafka.binder.configuration.sasl.mechanism = PLAIN
 
 (No need JAAS config file)
+
+### Update
+- Kafka sasl jaas authen using kafka image from Wurstmeiter
+- For external kafka console tool to connect to kafka docker container, we need to use extra_hosts to mapping kafka, zookeeper hostname to internal docker network ip of kafka and zookeeper.
